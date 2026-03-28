@@ -12,7 +12,7 @@ interface Fine {
   amount: number;
   reason: string | null;
   created_at: string;
-  profiles: { name: string } | null;
+  profiles: { name: string }[] | null;
 }
 
 interface Profile {
@@ -138,7 +138,7 @@ function FineItem({
     <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition">
       <div>
         <p className="text-sm font-semibold text-gray-700">
-          {fine.profiles?.name ?? "Unknown"}
+          {fine.profiles?.[0]?.name ?? "Unknown"}
         </p>
         <p className="text-xs text-gray-400">
           {fine.year}년 {fine.month}월 {fine.reason ? `· ${fine.reason}` : ""}
