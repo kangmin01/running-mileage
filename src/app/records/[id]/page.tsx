@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import RecordEditForm from "./RecordEditForm";
-import DeleteButton from "./DeleteButton";
+import RecordEditForm from "@/components/records/RecordEditForm";
+import DeleteButton from "@/components/records/DeleteButton";
+import { getRecord } from "@/services/record.service";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -15,12 +16,7 @@ export default async function RecordDetailPage({ params }: Props) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  const { data: record } = await supabase
-    .from("running_records")
-    .select("*")
-    .eq("id", id)
-    .single();
-
+  const record = await getRecord(id);
   if (!record) notFound();
 
   const isOwner = session.user.id === record.user_id;
@@ -74,13 +70,13 @@ function RecordView({ record }: { record: Record<string, unknown> }) {
           <p className="text-xs text-gray-400 mb-1">평균 페이스</p>
           <p className="text-xl font-bold text-sky-700">{Number(record.pace).toFixed(1)} min/km</p>
         </div>
-        {record.cadence && (
+        {!!record.cadence && (
           <div className="bg-sky-50 rounded-xl p-3">
             <p className="text-xs text-gray-400 mb-1">케이던시</p>
             <p className="text-xl font-bold text-sky-700">{String(record.cadence)} spm</p>
           </div>
         )}
-        {record.heart_rate && (
+        {!!record.heart_rate && (
           <div className="bg-sky-50 rounded-xl p-3">
             <p className="text-xs text-gray-400 mb-1">심박수</p>
             <p className="text-xl font-bold text-sky-700">{String(record.heart_rate)} bpm</p>

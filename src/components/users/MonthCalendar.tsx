@@ -1,13 +1,13 @@
 "use client";
 
-interface Record {
+interface CalendarRecord {
   id: string;
   date: string;
   distance: number;
 }
 
 interface Props {
-  records: Record[];
+  records: CalendarRecord[];
   year: number;
   month: number;
 }

@@ -36,8 +36,9 @@ export interface Fine {
   year: number;
   month: number;
   amount: number;
-  reason: string;
+  reason: string | null;
   created_at: string;
+  profiles: { name: string }[] | null;
 }
 
 export interface Badge {
@@ -46,4 +47,16 @@ export interface Badge {
   type: string;
   description: string;
   awarded_at: string;
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+}
+
+export interface Ranking {
+  userId: string;
+  name: string;
+  total: number;
+  achievement: number | null;
 }

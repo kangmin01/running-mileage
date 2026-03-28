@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import RecordForm from "./RecordForm";
+import RecordForm from "@/components/records/RecordForm";
 
 export default async function NewRecordPage() {
   const supabase = await createClient();

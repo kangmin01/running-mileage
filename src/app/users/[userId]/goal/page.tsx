@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import GoalForm from "./GoalForm";
+import GoalForm from "@/components/users/GoalForm";
+import { getGoal } from "@/services/goal.service";
 
 interface Props {
   params: Promise<{ userId: string }>;
@@ -21,21 +22,9 @@ export default async function GoalPage({ params }: Props) {
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("name")
-    .eq("id", userId)
-    .single();
+  const { goal, profile } = await getGoal(userId, year, month);
 
   if (!profile) notFound();
-
-  const { data: goal } = await supabase
-    .from("monthly_goals")
-    .select("id, target_distance")
-    .eq("user_id", userId)
-    .eq("year", year)
-    .eq("month", month)
-    .maybeSingle();
 
   // 월 시작 후엔 수정 불가 (이미 목표가 있는 경우)
   const today = now.getDate();

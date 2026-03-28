@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import FineList, { Fine } from "./FineList";
+import FineList from "@/components/fine/FineList";
+import { getFines } from "@/services/fine.service";
 
 export default async function FinePage() {
   const supabase = await createClient();
@@ -16,17 +17,7 @@ export default async function FinePage() {
 
   const isAdmin = profile?.role === "admin";
 
-  const { data: fines } = await supabase
-    .from("fines")
-    .select("id, user_id, year, month, amount, reason, created_at, profiles(name)")
-    .order("year", { ascending: false })
-    .order("month", { ascending: false });
-
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, name");
-
-  const totalAmount = (fines ?? []).reduce((sum, f) => sum + f.amount, 0);
+  const { fines, profiles, totalAmount } = await getFines();
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-cyan-50 to-white pb-24">
@@ -47,8 +38,8 @@ export default async function FinePage() {
 
         {/* 벌금 리스트 */}
         <FineList
-          fines={(fines ?? []) as Fine[]}
-          profiles={profiles ?? []}
+          fines={fines}
+          profiles={profiles}
           isAdmin={isAdmin}
           currentUserId={session.user.id}
         />

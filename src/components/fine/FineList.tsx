@@ -3,22 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-
-export interface Fine {
-  id: string;
-  user_id: string;
-  year: number;
-  month: number;
-  amount: number;
-  reason: string | null;
-  created_at: string;
-  profiles: { name: string }[] | null;
-}
-
-interface Profile {
-  id: string;
-  name: string;
-}
+import type { Fine, Profile } from "@/types";
 
 interface Props {
   fines: Fine[];

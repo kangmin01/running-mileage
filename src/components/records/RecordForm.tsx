@@ -1,88 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useRecordForm } from "@/hooks/useRecordForm";
 
 interface Props {
-  record: Record<string, unknown>;
+  userId: string;
+  today: string;
 }
 
-export default function RecordEditForm({ record }: Props) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const totalSec = Number(record.duration) * 60;
-  const initHours = Math.floor(Number(record.duration) / 60);
-  const initMinutes = Number(record.duration) % 60;
-
-  const [form, setForm] = useState({
-    date: String(record.date),
-    distance: String(record.distance),
-    hours: String(initHours),
-    minutes: String(initMinutes),
-    seconds: "0",
-    cadence: record.cadence ? String(record.cadence) : "",
-    heart_rate: record.heart_rate ? String(record.heart_rate) : "",
-  });
-
-  const set = (key: string, value: string) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
-
-  const calcPace = () => {
-    const dist = parseFloat(form.distance);
-    const totalSec =
-      parseInt(form.hours || "0") * 3600 +
-      parseInt(form.minutes || "0") * 60 +
-      parseInt(form.seconds || "0");
-    if (!dist || dist <= 0 || !totalSec) return null;
-    return Math.round((totalSec / dist) / 6) / 10;
-  };
-
-  const pacePreview = calcPace();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const dist = parseFloat(form.distance);
-    const duration =
-      parseInt(form.hours || "0") * 60 +
-      parseInt(form.minutes || "0") +
-      Math.round(parseInt(form.seconds || "0") / 60);
-    const pace = calcPace();
-
-    if (!dist || dist <= 0) return setError("거리를 입력해주세요.");
-    if (duration <= 0) return setError("운동 시간을 입력해주세요.");
-    if (!pace) return setError("페이스를 계산할 수 없어요.");
-
-    setLoading(true);
-    setError("");
-
-    const supabase = createClient();
-    const { error: err } = await supabase
-      .from("running_records")
-      .update({
-        date: form.date,
-        distance: dist,
-        duration,
-        pace,
-        cadence: form.cadence ? parseInt(form.cadence) : null,
-        heart_rate: form.heart_rate ? parseInt(form.heart_rate) : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", String(record.id));
-
-    setLoading(false);
-
-    if (err) {
-      setError("수정에 실패했어요. 다시 시도해주세요.");
-      return;
-    }
-
-    router.push(`/users/${record.user_id}`);
-    router.refresh();
-  };
+export default function RecordForm({ userId, today }: Props) {
+  const { form, set, pacePreview, loading, error, handleSubmit } = useRecordForm(userId, today);
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -105,6 +31,7 @@ export default function RecordEditForm({ record }: Props) {
             type="number"
             step="0.01"
             min="0"
+            placeholder="0.00"
             value={form.distance}
             onChange={(e) => set("distance", e.target.value)}
             className="w-full border border-sky-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
@@ -121,6 +48,7 @@ export default function RecordEditForm({ record }: Props) {
             <input
               type="number"
               min="0"
+              placeholder="0"
               value={form.hours}
               onChange={(e) => set("hours", e.target.value)}
               className="w-full border border-sky-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
@@ -132,6 +60,7 @@ export default function RecordEditForm({ record }: Props) {
               type="number"
               min="0"
               max="59"
+              placeholder="00"
               value={form.minutes}
               onChange={(e) => set("minutes", e.target.value)}
               className="w-full border border-sky-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
@@ -143,6 +72,7 @@ export default function RecordEditForm({ record }: Props) {
               type="number"
               min="0"
               max="59"
+              placeholder="00"
               value={form.seconds}
               onChange={(e) => set("seconds", e.target.value)}
               className="w-full border border-sky-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
@@ -152,7 +82,7 @@ export default function RecordEditForm({ record }: Props) {
         </div>
       </div>
 
-      {/* 페이스 */}
+      {/* 평균 페이스 (자동 계산) */}
       <div className="bg-sky-50 rounded-xl px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-gray-500">평균 페이스 (자동 계산)</span>
         <span className="text-sm font-bold text-sky-600">
@@ -194,7 +124,7 @@ export default function RecordEditForm({ record }: Props) {
         disabled={loading}
         className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-sky-300 text-white font-semibold rounded-xl py-3 transition"
       >
-        {loading ? "저장 중..." : "수정 저장"}
+        {loading ? "저장 중..." : "기록 저장"}
       </button>
     </form>
   );
