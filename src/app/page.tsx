@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import LogoutButton from "./logout/LogoutButton";
 
 async function getHomeData() {
   const supabase = await createClient();
@@ -111,12 +112,15 @@ export default async function HomePage() {
       {/* 헤더 */}
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-sky-100 px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-bold text-sky-600">🏃 Running Mileage</h1>
-        <Link
-          href="/fine"
-          className="text-xs bg-red-50 text-red-400 border border-red-200 rounded-full px-3 py-1 font-medium hover:bg-red-100 transition"
-        >
-          💸 벌금
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/fine"
+            className="text-xs bg-red-50 text-red-400 border border-red-200 rounded-full px-3 py-1 font-medium hover:bg-red-100 transition"
+          >
+            💸 벌금
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       <div className="max-w-lg mx-auto px-4 pt-6 flex flex-col gap-5">
