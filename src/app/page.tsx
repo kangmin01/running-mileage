@@ -119,6 +119,12 @@ export default async function HomePage() {
           >
             💸 벌금
           </Link>
+          <Link
+            href={`/users/${session.user.id}`}
+            className="text-xs bg-sky-50 text-sky-500 border border-sky-200 rounded-full px-3 py-1 font-medium hover:bg-sky-100 transition"
+          >
+            내 페이지
+          </Link>
           <LogoutButton />
         </div>
       </div>
