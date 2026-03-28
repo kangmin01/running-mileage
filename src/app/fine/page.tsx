@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import FineList from "./FineList";
+import FineList, { Fine } from "./FineList";
 
 export default async function FinePage() {
   const supabase = await createClient();
@@ -47,7 +47,7 @@ export default async function FinePage() {
 
         {/* 벌금 리스트 */}
         <FineList
-          fines={fines ?? []}
+          fines={(fines ?? []) as Fine[]}
           profiles={profiles ?? []}
           isAdmin={isAdmin}
           currentUserId={session.user.id}

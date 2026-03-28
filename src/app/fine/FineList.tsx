@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-interface Fine {
+export interface Fine {
   id: string;
   user_id: string;
   year: number;
