@@ -7,6 +7,7 @@ export interface HomeData {
   weekUploadCount: number;
   topWeekUser: string;
   currentMonthLabel: string;
+  fineSubjectIds: string[];
 }
 
 export async function getHomeData(): Promise<HomeData> {
@@ -55,6 +56,11 @@ export async function getHomeData(): Promise<HomeData> {
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, name");
+
+  // 벌금 대상자
+  const { data: fineSubjects } = await supabase
+    .from("fine_subjects")
+    .select("user_id");
 
   // 이번 주 기록
   const weekRecords = (allRecords ?? []).filter(
@@ -114,5 +120,7 @@ export async function getHomeData(): Promise<HomeData> {
   const topWeekUser = profiles?.find((p) => p.id === topWeekUserId)?.name ?? "-";
   const currentMonthLabel = `${year}년 ${month}월`;
 
-  return { rankings, weekTotalDistance, weekUploadCount, topWeekUser, currentMonthLabel };
+  const fineSubjectIds = (fineSubjects ?? []).map((s) => s.user_id);
+
+  return { rankings, weekTotalDistance, weekUploadCount, topWeekUser, currentMonthLabel, fineSubjectIds };
 }

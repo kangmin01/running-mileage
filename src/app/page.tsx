@@ -9,7 +9,7 @@ export default async function HomePage() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  const { rankings, weekTotalDistance, weekUploadCount, topWeekUser, currentMonthLabel } =
+  const { rankings, weekTotalDistance, weekUploadCount, topWeekUser, currentMonthLabel, fineSubjectIds } =
     await getHomeData();
 
   return (
@@ -79,7 +79,9 @@ export default async function HomePage() {
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-700">{user.name}</p>
+                  <p className="text-sm font-semibold text-gray-700">
+                    {user.name}{fineSubjectIds.includes(user.userId) && " 🔥"}
+                  </p>
                   {user.achievement !== null && (
                     <div className="mt-1 h-1.5 bg-sky-100 rounded-full overflow-hidden">
                       <div

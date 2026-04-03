@@ -96,7 +96,7 @@ export default function FineList({ fines, profiles, isAdmin, currentUserId, fine
           <p className="text-sm text-gray-400 text-center py-4">벌금 내역이 없어요</p>
         )}
         {filtered.map((f) => (
-          <FineItem key={f.id} fine={f} isAdmin={isAdmin} onDelete={() => router.refresh()} />
+          <FineItem key={f.id} fine={f} isAdmin={isAdmin} isFineSubject={fineSubjectIds.includes(f.user_id)} onDelete={() => router.refresh()} />
         ))}
       </div>
     </section>
@@ -106,10 +106,12 @@ export default function FineList({ fines, profiles, isAdmin, currentUserId, fine
 function FineItem({
   fine,
   isAdmin,
+  isFineSubject,
   onDelete,
 }: {
   fine: Fine;
   isAdmin: boolean;
+  isFineSubject: boolean;
   onDelete: () => void;
 }) {
   const [confirm, setConfirm] = useState(false);
@@ -127,7 +129,7 @@ function FineItem({
     <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition">
       <div>
         <p className="text-sm font-semibold text-gray-700">
-          {fine.profiles?.[0]?.name ?? "Unknown"}
+          {fine.profiles?.[0]?.name ?? "Unknown"}{isFineSubject && " 🔥"}
         </p>
         <p className="text-xs text-gray-400">
           {fine.year}년 {fine.month}월 {fine.reason ? `· ${fine.reason}` : ""}
