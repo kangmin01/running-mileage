@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export interface UserData {
@@ -23,7 +24,7 @@ export interface UserData {
   month: number;
 }
 
-export async function getUserData(userId: string): Promise<UserData | null> {
+async function fetchUserData(userId: string): Promise<UserData | null> {
   const supabase = await createClient();
 
   const now = new Date();
@@ -64,14 +65,8 @@ export async function getUserData(userId: string): Promise<UserData | null> {
 
   if (!profile) return null;
 
-  const totalDistance = (allRecords ?? []).reduce(
-    (sum, r) => sum + Number(r.distance),
-    0
-  );
-  const monthDistance = (monthRecords ?? []).reduce(
-    (sum, r) => sum + Number(r.distance),
-    0
-  );
+  const totalDistance = (allRecords ?? []).reduce((sum, r) => sum + Number(r.distance), 0);
+  const monthDistance = (monthRecords ?? []).reduce((sum, r) => sum + Number(r.distance), 0);
   const achievement = goal
     ? Math.min(Math.round((monthDistance / goal.target_distance) * 100), 100)
     : null;
@@ -87,4 +82,11 @@ export async function getUserData(userId: string): Promise<UserData | null> {
     year,
     month,
   };
+}
+
+export function getUserData(userId: string): Promise<UserData | null> {
+  return unstable_cache(fetchUserData, ["user-data"], {
+    revalidate: 30,
+    tags: [`user-${userId}`],
+  })(userId);
 }
