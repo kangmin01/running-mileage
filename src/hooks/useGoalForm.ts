@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateRecord } from "@/actions/cache";
 
 interface UseGoalFormOptions {
   userId: string;
@@ -52,8 +53,8 @@ export function useGoalForm({
       return;
     }
 
+    await revalidateRecord(userId);
     router.push(`/users/${userId}`);
-    router.refresh();
   };
 
   return { distance, setDistance, loading, error, handleSubmit };

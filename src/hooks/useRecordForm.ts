@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateRecord } from "@/actions/cache";
 
 export interface RecordFormState {
   date: string;
@@ -89,14 +90,16 @@ export function useRecordForm(userId: string, today: string) {
       return;
     }
 
-    await fetch("/api/records/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, distance: dist }),
-    });
+    await Promise.all([
+      fetch("/api/records/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, distance: dist }),
+      }),
+      revalidateRecord(userId),
+    ]);
 
     router.push(`/users/${userId}`);
-    router.refresh();
   };
 
   return { form, set, pacePreview, loading, error, handleSubmit };
@@ -161,8 +164,8 @@ export function useRecordEditForm(record: Record<string, unknown>) {
       return;
     }
 
+    await revalidateRecord(String(record.user_id));
     router.push(`/users/${record.user_id}`);
-    router.refresh();
   };
 
   return { form, set, pacePreview, loading, error, handleSubmit };

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { Fine, Profile } from "@/types";
+import { revalidateFines } from "@/actions/cache";
 
 interface Props {
   fines: Fine[];
@@ -121,6 +122,7 @@ function FineItem({
     setLoading(true);
     const supabase = createClient();
     await supabase.from("fines").delete().eq("id", fine.id);
+    await revalidateFines();
     setLoading(false);
     onDelete();
   };
@@ -205,6 +207,7 @@ function FineForm({
     });
     setLoading(false);
     if (err) return setError("저장에 실패했어요.");
+    await revalidateFines();
     onSuccess();
   };
 

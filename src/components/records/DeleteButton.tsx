@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateRecord } from "@/actions/cache";
 
 interface Props {
   recordId: string;
@@ -18,8 +19,8 @@ export default function DeleteButton({ recordId, userId }: Props) {
     setLoading(true);
     const supabase = createClient();
     await supabase.from("running_records").delete().eq("id", recordId);
+    await revalidateRecord(userId);
     router.push(`/users/${userId}`);
-    router.refresh();
   };
 
   if (confirm) {

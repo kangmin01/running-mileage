@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { Profile, FineConfig } from "@/types";
+import { revalidateFineAndHome } from "@/actions/cache";
 
 interface Props {
   profiles: Profile[];
@@ -49,6 +50,7 @@ export default function FineSubjectManager({ profiles, fineSubjectIds, fineConfi
       await supabase.from("fine_config").upsert({ id: 1, amount: parsedAmount });
     }
 
+    await revalidateFineAndHome();
     setSaving(false);
     router.refresh();
     setOpen(false);
