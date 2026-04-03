@@ -23,12 +23,16 @@ export interface UserData {
   month: number;
 }
 
-export async function getUserData(userId: string): Promise<UserData | null> {
+export async function getUserData(
+  userId: string,
+  targetYear?: number,
+  targetMonth?: number,
+): Promise<UserData | null> {
   const supabase = await createClient();
 
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const year = targetYear ?? now.getFullYear();
+  const month = targetMonth ?? now.getMonth() + 1;
 
   const firstDay = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();

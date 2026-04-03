@@ -2,26 +2,32 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import MonthCalendar from "@/components/users/MonthCalendar";
+import MonthNav from "@/components/users/MonthNav";
 import { getUserData } from "@/services/user.service";
 
 interface Props {
   params: Promise<{ userId: string }>;
+  searchParams: Promise<{ year?: string; month?: string }>;
 }
 
-export default async function UserDashboardPage({ params }: Props) {
+export default async function UserDashboardPage({ params, searchParams }: Props) {
   const { userId } = await params;
+  const { year: yearStr, month: monthStr } = await searchParams;
 
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  const data = await getUserData(userId);
+  const now = new Date();
+  const targetYear = yearStr ? Number(yearStr) : now.getFullYear();
+  const targetMonth = monthStr ? Number(monthStr) : now.getMonth() + 1;
+
+  const data = await getUserData(userId, targetYear, targetMonth);
   if (!data) notFound();
 
   const { profile, goal, monthRecords, totalDistance, monthDistance, achievement, badges, year, month } = data;
 
   const isOwner = session.user.id === userId;
-  const monthLabel = `${year}년 ${month}월`;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-cyan-50 to-white pb-24">
@@ -37,7 +43,7 @@ export default async function UserDashboardPage({ params }: Props) {
         {/* 이번 달 요약 카드 */}
         <section className="bg-white rounded-2xl shadow-sm border border-sky-100 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-sky-500">{monthLabel}</h2>
+            <MonthNav userId={userId} year={year} month={month} />
             {isOwner && (
               <Link
                 href={`/users/${userId}/goal`}
@@ -90,12 +96,12 @@ export default async function UserDashboardPage({ params }: Props) {
         {/* 달력 */}
         <section className="bg-white rounded-2xl shadow-sm border border-sky-100 p-5">
           <h2 className="text-sm font-semibold text-sky-500 mb-3">
-            {monthLabel} 기록
+            {year}년 {month}월 기록
           </h2>
           <MonthCalendar records={monthRecords} year={year} month={month} />
         </section>
 
-        {/* 이번 달 기록 리스트 */}
+        {/* 기록 리스트 */}
         {monthRecords.length > 0 && (
           <section className="bg-white rounded-2xl shadow-sm border border-sky-100 p-5">
             <h2 className="text-sm font-semibold text-sky-500 mb-3">기록 목록</h2>
