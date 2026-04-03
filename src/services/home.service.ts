@@ -6,6 +6,7 @@ export interface HomeData {
   weekTotalDistance: number;
   weekUploadCount: number;
   topWeekUser: string;
+  currentMonthLabel: string;
 }
 
 export async function getHomeData(): Promise<HomeData> {
@@ -27,10 +28,21 @@ export async function getHomeData(): Promise<HomeData> {
   const weekStart = monday.toISOString().split("T")[0];
   const weekEnd = sunday.toISOString().split("T")[0];
 
-  // 전체 러닝 기록 (유저 정보 포함)
-  const { data: records } = await supabase
+  const firstDayOfMonth = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+  const lastDayOfMonthStr = `${year}-${String(month).padStart(2, "0")}-${lastDayOfMonth}`;
+
+  // 이번 달 러닝 기록 (유저 정보 포함)
+  const { data: monthRecords } = await supabase
     .from("running_records")
-    .select("user_id, distance, date, profiles(name)");
+    .select("user_id, distance, date, profiles(name)")
+    .gte("date", firstDayOfMonth)
+    .lte("date", lastDayOfMonthStr);
+
+  // 전체 러닝 기록 (이번 주 요약용)
+  const { data: allRecords } = await supabase
+    .from("running_records")
+    .select("user_id, distance, date");
 
   // 이번 달 목표
   const { data: goals } = await supabase
@@ -45,13 +57,13 @@ export async function getHomeData(): Promise<HomeData> {
     .select("id, name");
 
   // 이번 주 기록
-  const weekRecords = (records ?? []).filter(
+  const weekRecords = (allRecords ?? []).filter(
     (r) => r.date >= weekStart && r.date <= weekEnd
   );
 
-  // 유저별 총 마일리지 계산
+  // 유저별 이번 달 마일리지 계산
   const mileageMap: Record<string, { name: string; total: number }> = {};
-  for (const r of records ?? []) {
+  for (const r of monthRecords ?? []) {
     if (!mileageMap[r.user_id]) {
       mileageMap[r.user_id] = {
         name: (r.profiles as unknown as { name: string } | null)?.name ?? "Unknown",
@@ -61,7 +73,7 @@ export async function getHomeData(): Promise<HomeData> {
     mileageMap[r.user_id].total += Number(r.distance);
   }
 
-  // 랭킹 (총 마일리지 순)
+  // 랭킹 (이번 달 마일리지 순)
   const rankings: Ranking[] = Object.entries(mileageMap)
     .map(([userId, { name, total }]) => {
       const goal = goals?.find((g) => g.user_id === userId);
@@ -100,6 +112,7 @@ export async function getHomeData(): Promise<HomeData> {
     (a, b) => b[1] - a[1]
   )[0]?.[0];
   const topWeekUser = profiles?.find((p) => p.id === topWeekUserId)?.name ?? "-";
+  const currentMonthLabel = `${year}년 ${month}월`;
 
-  return { rankings, weekTotalDistance, weekUploadCount, topWeekUser };
+  return { rankings, weekTotalDistance, weekUploadCount, topWeekUser, currentMonthLabel };
 }

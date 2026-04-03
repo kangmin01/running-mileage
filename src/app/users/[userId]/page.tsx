@@ -48,18 +48,25 @@ export default async function UserDashboardPage({ params }: Props) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-sky-50 rounded-xl p-3">
-              <p className="text-xs text-gray-400 mb-1">이번 달 거리</p>
-              <p className="text-xl font-bold text-sky-700">
+              <p className="text-xs text-gray-400 mb-1">이번 달</p>
+              <p className="text-lg font-bold text-sky-700">
                 {monthDistance.toFixed(1)}
-                <span className="text-sm font-normal ml-1">km</span>
+                <span className="text-xs font-normal ml-1">km</span>
+              </p>
+            </div>
+            <div className="bg-indigo-50 rounded-xl p-3">
+              <p className="text-xs text-gray-400 mb-1">총 누적</p>
+              <p className="text-lg font-bold text-indigo-600">
+                {totalDistance.toFixed(1)}
+                <span className="text-xs font-normal ml-1">km</span>
               </p>
             </div>
             <div className="bg-sky-50 rounded-xl p-3">
               <p className="text-xs text-gray-400 mb-1">월 목표</p>
-              <p className="text-xl font-bold text-sky-700">
-                {goal ? `${goal.target_distance} km` : "미설정"}
+              <p className="text-lg font-bold text-sky-700">
+                {goal ? `${goal.target_distance}km` : "미설정"}
               </p>
             </div>
           </div>
@@ -78,15 +85,6 @@ export default async function UserDashboardPage({ params }: Props) {
               </div>
             </div>
           )}
-        </section>
-
-        {/* 누적 거리 */}
-        <section className="bg-white rounded-2xl shadow-sm border border-sky-100 p-5">
-          <h2 className="text-sm font-semibold text-sky-500 mb-2">누적 거리</h2>
-          <p className="text-3xl font-bold text-sky-700">
-            {totalDistance.toFixed(1)}
-            <span className="text-base font-normal text-gray-400 ml-1">km</span>
-          </p>
         </section>
 
         {/* 달력 */}

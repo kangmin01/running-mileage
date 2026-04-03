@@ -9,7 +9,7 @@ export default async function HomePage() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  const { rankings, weekTotalDistance, weekUploadCount, topWeekUser } =
+  const { rankings, weekTotalDistance, weekUploadCount, topWeekUser, currentMonthLabel } =
     await getHomeData();
 
   return (
@@ -59,7 +59,10 @@ export default async function HomePage() {
 
         {/* 랭킹 */}
         <section className="bg-white rounded-2xl shadow-sm border border-sky-100 p-5">
-          <h2 className="text-sm font-semibold text-sky-500 mb-3">전체 랭킹</h2>
+          <div className="flex items-baseline gap-2 mb-3">
+            <h2 className="text-sm font-semibold text-sky-500">이달의 랭킹</h2>
+            <span className="text-xs text-gray-400">{currentMonthLabel}</span>
+          </div>
           <div className="flex flex-col gap-3">
             {rankings.length === 0 && (
               <p className="text-sm text-gray-400 text-center py-4">
