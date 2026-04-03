@@ -54,6 +54,17 @@ export interface Profile {
   name: string;
 }
 
+export interface FineSubject {
+  user_id: string;
+  created_at: string;
+}
+
+export interface FineConfig {
+  id: number;
+  amount: number;
+  updated_at: string;
+}
+
 export interface Ranking {
   userId: string;
   name: string;

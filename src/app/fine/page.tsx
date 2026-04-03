@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import FineList from "@/components/fine/FineList";
-import { getFines } from "@/services/fine.service";
+import FineSubjectManager from "@/components/fine/FineSubjectManager";
+import { getFines, autoGenerateFines } from "@/services/fine.service";
 
 export default async function FinePage() {
   const supabase = await createClient();
@@ -17,7 +18,10 @@ export default async function FinePage() {
 
   const isAdmin = profile?.role === "admin";
 
-  const { fines, profiles, totalAmount } = await getFines();
+  // 새 달 시작 시 이전 달 벌금 자동 부과
+  await autoGenerateFines();
+
+  const { fines, profiles, totalAmount, fineSubjectIds, fineConfig } = await getFines();
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-cyan-50 to-white pb-24">
@@ -36,12 +40,23 @@ export default async function FinePage() {
           </p>
         </section>
 
+        {/* 관리자 - 벌금 대상자 관리 */}
+        {isAdmin && (
+          <FineSubjectManager
+            profiles={profiles}
+            fineSubjectIds={fineSubjectIds}
+            fineConfig={fineConfig}
+          />
+        )}
+
         {/* 벌금 리스트 */}
         <FineList
           fines={fines}
           profiles={profiles}
           isAdmin={isAdmin}
           currentUserId={session.user.id}
+          fineAmount={fineConfig.amount}
+          fineSubjectIds={fineSubjectIds}
         />
       </div>
     </main>

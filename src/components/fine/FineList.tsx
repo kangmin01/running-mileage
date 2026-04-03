@@ -10,9 +10,11 @@ interface Props {
   profiles: Profile[];
   isAdmin: boolean;
   currentUserId: string;
+  fineAmount: number;
+  fineSubjectIds: string[];
 }
 
-export default function FineList({ fines, profiles, isAdmin, currentUserId }: Props) {
+export default function FineList({ fines, profiles, isAdmin, currentUserId, fineAmount, fineSubjectIds }: Props) {
   const router = useRouter();
   const now = new Date();
   const [filterYear, setFilterYear] = useState(now.getFullYear());
@@ -49,6 +51,8 @@ export default function FineList({ fines, profiles, isAdmin, currentUserId }: Pr
       {isAdmin && showForm && (
         <FineForm
           profiles={profiles}
+          fineAmount={fineAmount}
+          fineSubjectIds={fineSubjectIds}
           onSuccess={() => { setShowForm(false); router.refresh(); }}
         />
       )}
@@ -158,17 +162,25 @@ function FineItem({
 
 function FineForm({
   profiles,
+  fineAmount,
+  fineSubjectIds,
   onSuccess,
 }: {
   profiles: Profile[];
+  fineAmount: number;
+  fineSubjectIds: string[];
   onSuccess: () => void;
 }) {
   const now = new Date();
+  // 대상자 목록 우선, 없으면 전체 프로필
+  const selectableProfiles = fineSubjectIds.length > 0
+    ? profiles.filter((p) => fineSubjectIds.includes(p.id))
+    : profiles;
+
   const [form, setForm] = useState({
-    user_id: profiles[0]?.id ?? "",
+    user_id: selectableProfiles[0]?.id ?? "",
     year: now.getFullYear(),
     month: now.getMonth() + 1,
-    amount: "",
     reason: "",
   });
   const [loading, setLoading] = useState(false);
@@ -179,8 +191,6 @@ function FineForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.amount || Number(form.amount) <= 0) return setError("금액을 입력해주세요.");
-
     setLoading(true);
     setError("");
     const supabase = createClient();
@@ -188,7 +198,7 @@ function FineForm({
       user_id: form.user_id,
       year: form.year,
       month: form.month,
-      amount: Number(form.amount),
+      amount: fineAmount,
       reason: form.reason || null,
     });
     setLoading(false);
@@ -198,23 +208,23 @@ function FineForm({
 
   return (
     <form onSubmit={handleSubmit} className="bg-sky-50 rounded-xl p-4 flex flex-col gap-3">
+      <div className="flex items-center gap-2 text-xs text-gray-400">
+        <span>고정 벌금액:</span>
+        <span className="font-semibold text-red-400">{fineAmount.toLocaleString()}원</span>
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <select
           value={form.user_id}
           onChange={(e) => set("user_id", e.target.value)}
           className="border border-sky-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
         >
-          {profiles.map((p) => (
+          {selectableProfiles.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
-        <input
-          type="number"
-          placeholder="금액 (원)"
-          value={form.amount}
-          onChange={(e) => set("amount", e.target.value)}
-          className="border border-sky-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-        />
+        <div className="border border-sky-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400 flex items-center">
+          {fineAmount.toLocaleString()}원 (고정)
+        </div>
         <select
           value={form.year}
           onChange={(e) => set("year", Number(e.target.value))}
