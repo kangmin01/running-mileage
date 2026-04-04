@@ -1,24 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export default function HelpModal() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="text-xs bg-gray-50 text-gray-500 border border-gray-200 rounded-full px-3 py-1 font-medium hover:bg-gray-100 transition"
-      >
-        ？ 이용 안내
-      </button>
+  useEffect(() => { setMounted(true); }, []);
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
-          onClick={() => setOpen(false)}
-        >
+  const overlay = open && (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40"
+      onClick={() => setOpen(false)}
+    >
           <div
             className="bg-white w-full max-w-lg rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
@@ -107,7 +102,17 @@ export default function HelpModal() {
             </div>
           </div>
         </div>
-      )}
+  );
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="text-xs bg-gray-50 text-gray-500 border border-gray-200 rounded-full px-3 py-1 font-medium hover:bg-gray-100 transition"
+      >
+        ？ 이용 안내
+      </button>
+      {mounted && overlay && createPortal(overlay, document.body)}
     </>
   );
 }
