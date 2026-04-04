@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import LogoutButton from "@/components/common/LogoutButton";
+import HelpModal from "@/components/common/HelpModal";
 import { getHomeData } from "@/services/home.service";
 
 export default async function HomePage() {
@@ -18,6 +19,7 @@ export default async function HomePage() {
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-sky-100 px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-bold text-sky-600">🏃 Running Mileage</h1>
         <div className="flex items-center gap-2">
+          <HelpModal />
           <Link
             href="/fine"
             className="text-xs bg-red-50 text-red-400 border border-red-200 rounded-full px-3 py-1 font-medium hover:bg-red-100 transition"
