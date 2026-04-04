@@ -55,8 +55,17 @@ export async function autoGenerateFines(): Promise<{ generated: number }> {
   const firstDay = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
   const lastDayStr = `${prevYear}-${String(prevMonth).padStart(2, "0")}-${new Date(prevYear, prevMonth, 0).getDate()}`;
 
+  // 이미 이번 달 자동 부과가 실행됐으면 스킵
+  const { data: autoLog } = await supabase
+    .from("fine_auto_log")
+    .select("year")
+    .eq("year", prevYear)
+    .eq("month", prevMonth)
+    .maybeSingle();
+  if (autoLog) return { generated: 0 };
+
   // 필요한 데이터 병렬 조회
-  const [{ data: subjects }, { data: config }, { data: existingFines }, { data: goals }, { data: records }] =
+  const [{ data: subjects }, { data: config }, { data: existingFines }, { data: goals }, { data: records }, { data: profileIds }] =
     await Promise.all([
       supabase.from("fine_subjects").select("user_id"),
       supabase.from("fine_config").select("amount").eq("id", 1).single(),
@@ -76,9 +85,12 @@ export async function autoGenerateFines(): Promise<{ generated: number }> {
         .select("user_id, distance")
         .gte("date", firstDay)
         .lte("date", lastDayStr),
+      supabase.from("profiles").select("id"),
     ]);
 
   if (!subjects || subjects.length === 0 || !config) return { generated: 0 };
+
+  const validProfileIds = new Set((profileIds ?? []).map((p) => p.id));
 
   const fineAmount = config.amount;
   const alreadyFined = new Set((existingFines ?? []).map((f) => f.user_id));
@@ -91,6 +103,7 @@ export async function autoGenerateFines(): Promise<{ generated: number }> {
 
   let generated = 0;
   for (const { user_id } of subjects) {
+    if (!validProfileIds.has(user_id)) continue; // 프로필 없는 고스트 유저 스킵
     if (alreadyFined.has(user_id)) continue;
     const target = goalMap.get(user_id);
     if (!target) continue;
@@ -106,6 +119,9 @@ export async function autoGenerateFines(): Promise<{ generated: number }> {
     });
     if (!error) generated++;
   }
+
+  // 이번 달 자동 부과 완료 기록 (이후 재실행 방지)
+  await supabase.from("fine_auto_log").insert({ year: prevYear, month: prevMonth });
 
   return { generated };
 }
