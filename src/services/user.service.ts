@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export interface UserData {
@@ -24,7 +23,7 @@ export interface UserData {
   month: number;
 }
 
-async function fetchUserData(userId: string): Promise<UserData | null> {
+export async function getUserData(userId: string): Promise<UserData | null> {
   const supabase = await createClient();
 
   const now = new Date();
@@ -82,11 +81,4 @@ async function fetchUserData(userId: string): Promise<UserData | null> {
     year,
     month,
   };
-}
-
-export function getUserData(userId: string): Promise<UserData | null> {
-  return unstable_cache(fetchUserData, ["user-data"], {
-    revalidate: 30,
-    tags: [`user-${userId}`],
-  })(userId);
 }

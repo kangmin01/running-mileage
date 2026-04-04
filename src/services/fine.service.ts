@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Fine, FineConfig, Profile } from "@/types";
 
@@ -10,7 +9,7 @@ export interface FineData {
   fineConfig: FineConfig;
 }
 
-async function fetchFines(): Promise<FineData> {
+export async function getFines(): Promise<FineData> {
   const supabase = await createClient();
 
   const [{ data: fines }, { data: profiles }, { data: subjects }, { data: config }] =
@@ -38,21 +37,16 @@ async function fetchFines(): Promise<FineData> {
   };
 }
 
-export const getFines = unstable_cache(fetchFines, ["fines-data"], {
-  revalidate: 15,
-  tags: ["fines"],
-});
-
 // 이전 달 벌금 자동 부과 (목표 미달 대상자에게만)
 export async function autoGenerateFines(): Promise<{ generated: number }> {
   const now = new Date();
 
-  // 매 달 1~7일 사이에만 실행 (이후엔 이미 처리됐거나 달이 끝나지 않은 상태)
+  // 매 달 1~7일 사이에만 실행
   if (now.getDate() > 7) return { generated: 0 };
 
   const supabase = await createClient();
   let prevYear = now.getFullYear();
-  let prevMonth = now.getMonth(); // 0-based, 0이면 이전 해 12월
+  let prevMonth = now.getMonth();
   if (prevMonth === 0) {
     prevYear -= 1;
     prevMonth = 12;
@@ -90,7 +84,6 @@ export async function autoGenerateFines(): Promise<{ generated: number }> {
   const alreadyFined = new Set((existingFines ?? []).map((f) => f.user_id));
   const goalMap = new Map((goals ?? []).map((g) => [g.user_id, g.target_distance]));
 
-  // 유저별 실제 거리 합산
   const distanceMap = new Map<string, number>();
   for (const r of records ?? []) {
     distanceMap.set(r.user_id, (distanceMap.get(r.user_id) ?? 0) + Number(r.distance));
@@ -100,9 +93,9 @@ export async function autoGenerateFines(): Promise<{ generated: number }> {
   for (const { user_id } of subjects) {
     if (alreadyFined.has(user_id)) continue;
     const target = goalMap.get(user_id);
-    if (!target) continue; // 목표 없으면 패스
+    if (!target) continue;
     const actual = distanceMap.get(user_id) ?? 0;
-    if (actual >= target) continue; // 목표 달성
+    if (actual >= target) continue;
 
     const { error } = await supabase.from("fines").insert({
       user_id,
