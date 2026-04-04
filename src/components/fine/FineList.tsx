@@ -117,13 +117,20 @@ function FineItem({
 }) {
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const handleDelete = async () => {
     setLoading(true);
+    setDeleteError("");
     const supabase = createClient();
-    await supabase.from("fines").delete().eq("id", fine.id);
-    await revalidateFines();
+    const { error } = await supabase.from("fines").delete().eq("id", fine.id);
     setLoading(false);
+    if (error) {
+      setDeleteError("삭제 실패: " + error.message);
+      setConfirm(false);
+      return;
+    }
+    await revalidateFines();
     onDelete();
   };
 
@@ -139,6 +146,7 @@ function FineItem({
       </div>
       <div className="flex items-center gap-2">
         <p className="text-sm font-bold text-red-400">{fine.amount.toLocaleString()}원</p>
+        {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
         {isAdmin && (
           confirm ? (
             <div className="flex gap-1">
