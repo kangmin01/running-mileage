@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // POST /api/strava/disconnect — Strava 연결 해제
 export async function POST(request: NextRequest) {
@@ -7,7 +8,8 @@ export async function POST(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  await supabase
+  const admin = createAdminClient();
+  await admin
     .from("strava_connections")
     .delete()
     .eq("user_id", session.user.id);

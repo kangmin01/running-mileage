@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET /api/strava/callback — Strava OAuth 콜백
 export async function GET(request: NextRequest) {
@@ -34,7 +35,8 @@ export async function GET(request: NextRequest) {
   const tokens = await tokenRes.json();
   const athleteId: number = tokens.athlete?.id;
 
-  await supabase.from("strava_connections").upsert({
+  const admin = createAdminClient();
+  await admin.from("strava_connections").upsert({
     user_id: session.user.id,
     strava_athlete_id: athleteId,
     access_token: tokens.access_token,
