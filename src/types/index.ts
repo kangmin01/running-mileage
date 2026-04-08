@@ -59,6 +59,15 @@ export interface FineSubject {
   created_at: string;
 }
 
+export interface StravaConnection {
+  user_id: string;
+  strava_athlete_id: number;
+  access_token: string;
+  refresh_token: string;
+  token_expires_at: string;
+  created_at: string;
+}
+
 export interface FineConfig {
   id: number;
   amount: number;

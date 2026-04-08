@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import MonthDashboard from "@/components/users/MonthDashboard";
+import StravaConnect from "@/components/strava/StravaConnect";
 import { getUserData } from "@/services/user.service";
 
 interface Props {
@@ -21,6 +22,16 @@ export default async function UserDashboardPage({ params }: Props) {
   const { profile, goal, monthRecords, totalDistance, badges, year, month } = data;
 
   const isOwner = session.user.id === userId;
+
+  let stravaConnected = false;
+  if (isOwner) {
+    const { data: stravaConn } = await supabase
+      .from("strava_connections")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    stravaConnected = !!stravaConn;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-cyan-50 to-white pb-24">
@@ -61,6 +72,9 @@ export default async function UserDashboardPage({ params }: Props) {
             </div>
           </section>
         )}
+
+        {/* Strava 연동 (본인만) */}
+        {isOwner && <StravaConnect connected={stravaConnected} />}
 
         {/* 기록 추가 버튼 (본인만) */}
         {isOwner && (
