@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchStravaActivity, convertStravaActivity, isRunActivity } from "@/lib/strava";
+import { fetchStravaActivity, convertStravaActivity, isRunActivity, getStravaAccessToken } from "@/lib/strava";
 
 // GET /api/strava/webhook — Strava 웹훅 구독 인증
 export async function GET(request: NextRequest) {
