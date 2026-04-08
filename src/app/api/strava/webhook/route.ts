@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     strava_activity_id: activityId,
   });
 
-  revalidateTag("home");
-  revalidateTag(`user-${userId}`);
+  revalidateTag("home", "max");
+  revalidateTag(`user-${userId}`, "max");
 
   return NextResponse.json({ ok: true });
 }
