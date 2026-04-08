@@ -2,13 +2,20 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 export interface StravaActivity {
   id: number;
-  type: string;
+  type: string;       // deprecated but still returned
+  sport_type: string; // 현재 기준 필드 (e.g. "Run", "TrailRun", "VirtualRun")
   name: string;
   distance: number;       // meters
   moving_time: number;    // seconds
   start_date_local: string;
   average_cadence?: number; // steps/min (one foot)
   average_heartrate?: number;
+}
+
+const RUN_SPORT_TYPES = new Set(["Run", "TrailRun", "VirtualRun"]);
+
+export function isRunActivity(activity: StravaActivity): boolean {
+  return RUN_SPORT_TYPES.has(activity.sport_type) || activity.type === "Run";
 }
 
 interface TokenResponse {

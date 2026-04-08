@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchStravaActivity, convertStravaActivity } from "@/lib/strava";
-import { getStravaAccessToken } from "@/lib/strava";
+import { fetchStravaActivity, convertStravaActivity, isRunActivity } from "@/lib/strava";
 
 // GET /api/strava/webhook — Strava 웹훅 구독 인증
 export async function GET(request: NextRequest) {
@@ -57,7 +56,7 @@ export async function POST(request: NextRequest) {
   if (!accessToken) return NextResponse.json({ ok: true });
 
   const activity = await fetchStravaActivity(activityId, accessToken);
-  if (!activity || activity.type !== "Run") return NextResponse.json({ ok: true });
+  if (!activity || !isRunActivity(activity)) return NextResponse.json({ ok: true });
 
   const { distKm, durationMin, pace, cadence, heartRate, date } =
     convertStravaActivity(activity);
